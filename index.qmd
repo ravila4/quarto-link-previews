@@ -1,0 +1,12 @@
+---
+title: "Link Previews for Quarto"
+---
+
+Hover over an internal link to see a preview of the target page, in the style
+of [Quartz](https://quartz.jzhao.xyz/) digital gardens.
+
+Try it: read about [the coffee-ring effect](demo/coffee.qmd), skim
+[a long page](demo/long-page.qmd), or jump straight to
+[a section deep inside it](demo/long-page.qmd#pinned-contact-lines).
+
+External links like [Quarto](https://quarto.org/) are left alone.

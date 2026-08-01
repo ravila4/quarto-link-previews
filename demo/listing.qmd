@@ -1,0 +1,24 @@
+---
+title: "Posts"
+listing:
+  - id: default-listing
+    contents:
+      - coffee.qmd
+      - long-page.qmd
+    type: default
+  - id: grid-listing
+    contents:
+      - coffee.qmd
+      - long-page.qmd
+    type: grid
+---
+
+Default listing (cards carry several same-href anchors):
+
+::: {#default-listing}
+:::
+
+Grid listing (`a.quarto-grid-link`):
+
+::: {#grid-listing}
+:::

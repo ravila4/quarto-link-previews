@@ -1,0 +1,23 @@
+project:
+  type: website
+  render:
+    - index.qmd
+    - demo/
+
+website:
+  title: "quarto-link-previews"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: demo/listing.qmd
+        text: Posts
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+
+filters:
+  - link-previews

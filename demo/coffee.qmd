@@ -1,0 +1,15 @@
+---
+title: "The Coffee-Ring Effect"
+description: "Why a dried coffee drop leaves a ring, not a disc."
+date: 2026-07-01
+categories: [physics, demo]
+---
+
+A drying drop pins its contact line, so the footprint cannot shrink.
+Evaporation removes liquid fastest at the thin edge, and the only
+replacement source is the interior — an outward flow develops and carries
+suspended particles to the rim[^1].
+
+See also [the long page](long-page.qmd) and [the home page](../index.qmd).
+
+[^1]: Deegan et al., *Nature* 389, 827 (1997).

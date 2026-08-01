@@ -1,0 +1,33 @@
+---
+title: "A Long Page"
+description: "Many sections, for testing fragment scrolling and truncation."
+date: 2026-07-02
+categories: [demo]
+---
+
+Links here go to [the coffee-ring page](coffee.qmd) and back
+[home](../index.qmd).
+
+## Evaporation at the edge
+
+The evaporative flux diverges near the contact line, which is why the edge
+dominates the deposit.
+
+## Outward flow
+
+Mass conservation forces liquid outward to replenish the edge.
+
+## Pinned contact lines
+
+This is the fragment-scroll target: a link to
+`long-page.qmd#pinned-contact-lines` should open the preview scrolled to
+this heading.
+
+## Depinning events
+
+When the deposit can no longer hold the line, it jumps inward and re-pins,
+leaving nested rings.
+
+## Closing
+
+Enough sections to force the preview to truncate and scroll.

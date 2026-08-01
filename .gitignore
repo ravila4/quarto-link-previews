@@ -1,0 +1,8 @@
+_site/
+.quarto/
+node_modules/
+.DS_Store
+.scratch/
+
+/.quarto/
+**/*.quarto_ipynb
