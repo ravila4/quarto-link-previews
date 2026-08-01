@@ -18,14 +18,14 @@ theme, light and dark, automatically.
 ## Install
 
 ```bash
-quarto add ravila/quarto-link-previews
+quarto add ravila4/quarto-link-previews
 ```
 
 Then enable it for your website in `_quarto.yml`:
 
 ```yaml
 filters:
-  - ravila/link-previews
+  - ravila4/link-previews
 ```
 
 ## Configuration
