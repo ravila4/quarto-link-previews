@@ -33,10 +33,10 @@ jobs:
       # dependency, so assert the artifacts directly.
       - name: Assert dependency injection
         run: |
-          grep -q 'link-previews.*\.js.*type="module"\|type="module".*link-previews.*\.js' _site/index.html
-          grep -q 'link-previews.*\.js' _site/demo/coffee.html
-          test -f _site/site_libs/quarto-contrib/link-previews-0.1.0/link-previews.js
-          test -f _site/site_libs/quarto-contrib/link-previews-0.1.0/link-previews.css
+          grep -Eq '<script src="[^"]*link-previews[^"]*\.js" type="module">' _site/index.html
+          grep -Eq '<script src="[^"]*link-previews[^"]*\.js" type="module">' _site/demo/coffee.html
+          test -f _site/site_libs/quarto-contrib/link-previews-*/link-previews.js
+          test -f _site/site_libs/quarto-contrib/link-previews-*/link-previews.css
       - name: Assert config transport is valid JSON
         run: |
           grep -q 'id="link-previews-config"' _site/index.html

@@ -46,6 +46,17 @@ test("a rejected entry is evicted so the next call retries", async () => {
   assert.equal(calls, 2);
 });
 
+test("cache evicts the oldest entry beyond the size cap", async () => {
+  const cache = new Map();
+  const producer = async (key) => key;
+  for (let i = 0; i < 35; i += 1) {
+    await getOrFetch(cache, `k${i}`, producer, 30);
+  }
+  assert.equal(cache.size, 30);
+  assert.equal(cache.has("k0"), false);
+  assert.equal(cache.has("k34"), true);
+});
+
 const res = (over = {}) => ({
   ok: true,
   status: 200,

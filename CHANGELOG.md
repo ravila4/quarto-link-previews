@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-08-01
+
+### Fixed
+
+- URLs rewritten into preview content are now protocol-filtered:
+  `javascript:` (and other non-navigable) `href`/`src`/`srcset` values from
+  the fetched page are dropped instead of cloned into the interactive
+  popover. `data:` URIs remain allowed for images only.
+- The extension no-ops on `file://` pages, where opaque origins made every
+  link look same-origin and every hover fetch fail.
+
+### Changed
+
+- Preview fetch cache is capped at 30 entries (oldest evicted) so cached
+  article DOMs cannot grow without bound on heavily-browsed listing pages.
+- Loading/unavailable states are built as DOM nodes rather than HTML strings.
+- CI render-smoke assertions tightened: exact module script-tag pattern,
+  version-agnostic `site_libs` paths.
+
 ## [0.1.0] - 2026-08-01
 
 ### Added

@@ -4,7 +4,7 @@
 // DOM glue at the bottom behind a `typeof document` guard so the module is
 // importable under Node without a DOM shim.
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.1.1";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -78,34 +78,51 @@ export function splitTarget(href) {
   return { fetchUrl: canonicalizeUrl(href), fragment };
 }
 
-// absolutize/rewriteSrcset are only for URLs found inside fetched HTML text.
-// Live anchors always use the browser-resolved anchor.href / document.baseURI
-// instead -- that rule is the entire subpath and <base href> defense.
-export function absolutize(url, base) {
-  if (!url || url.startsWith("data:")) {
-    return url;
+// Rewrite policy for URLs found in fetched content, per attribute. Live
+// anchors always use the browser-resolved anchor.href instead -- that rule
+// is the entire subpath and <base href> defense. The
+// result lands in an interactive popover, so anything that is not plainly
+// navigable is dropped (null means "remove the attribute") rather than
+// propagated -- a same-origin page carrying a javascript: href must not have
+// it cloned into the preview.
+const SAFE_PROTOCOLS = { href: ["http:", "https:"], src: ["http:", "https:", "data:"] };
+
+function resolvedIfSafe(url, base, protocols) {
+  if (!url) {
+    return null;
   }
+  let resolved;
   try {
-    return new URL(url, base).href;
+    resolved = new URL(url, base);
   } catch {
-    return url;
+    return null;
   }
+  if (!protocols.includes(resolved.protocol)) {
+    return null;
+  }
+  return url.startsWith("data:") ? url : resolved.href;
 }
 
-// Known limitation: commas inside candidate URLs are treated as separators.
-export function rewriteSrcset(srcset, base) {
-  if (!srcset) {
-    return srcset;
+export function sanitizeRewrite(attr, value, base) {
+  // Known limitation: commas inside srcset candidate URLs are treated as
+  // separators.
+  if (attr === "srcset") {
+    if (!value) {
+      return null;
+    }
+    const safe = value
+      .split(",")
+      .map((candidate) => candidate.trim())
+      .filter((candidate) => candidate.length > 0)
+      .map((candidate) => {
+        const [url, ...descriptors] = candidate.split(/\s+/);
+        const resolved = resolvedIfSafe(url, base, SAFE_PROTOCOLS.src);
+        return resolved === null ? null : [resolved, ...descriptors].join(" ");
+      })
+      .filter((candidate) => candidate !== null);
+    return safe.length > 0 ? safe.join(", ") : null;
   }
-  return srcset
-    .split(",")
-    .map((candidate) => candidate.trim())
-    .filter((candidate) => candidate.length > 0)
-    .map((candidate) => {
-      const [url, ...descriptors] = candidate.split(/\s+/);
-      return [absolutize(url, base), ...descriptors].join(" ");
-    })
-    .join(", ");
+  return resolvedIfSafe(value, base, SAFE_PROTOCOLS[attr] ?? SAFE_PROTOCOLS.href);
 }
 
 // ---------------------------------------------------------------------------
@@ -227,14 +244,21 @@ export function planBindings(anchors) {
 // ---------------------------------------------------------------------------
 
 // Caches the promise, not the result: concurrent hovers share one in-flight
-// request, and a rejected entry is evicted so a later hover can retry.
-export function getOrFetch(cache, key, producer) {
+// request, and a rejected entry is evicted so a later hover can retry. A
+// caller that read the entry in the same tick as the eviction still holds
+// the rejected promise, which is benign: its catch path runs and the next
+// hover produces a fresh entry. Size-capped because cached templates keep
+// full article DOMs (and their decoded images) alive.
+export function getOrFetch(cache, key, producer, maxSize = 30) {
   const cached = cache.get(key);
   if (cached) {
     return cached;
   }
   const promise = producer(key);
   cache.set(key, promise);
+  if (cache.size > maxSize) {
+    cache.delete(cache.keys().next().value);
+  }
   promise.catch(() => cache.delete(key));
   return promise;
 }
@@ -265,6 +289,12 @@ export const STRIP_SELECTOR = "script, iframe";
 // ---------------------------------------------------------------------------
 
 function initLinkPreviews() {
+  // file:// origins are opaque, so every link compares as same-origin and
+  // every fetch is doomed; a double-clicked rendered HTML file should not
+  // show a broken-looking "No preview available" on each hover.
+  if (window.location.protocol !== "http:" && window.location.protocol !== "https:") {
+    return;
+  }
   if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     return;
   }
@@ -448,14 +478,15 @@ async function fetchAndExtract(url, cfg) {
 }
 
 function rewriteUrls(root, baseUrl) {
-  for (const el of root.querySelectorAll("[src]")) {
-    el.setAttribute("src", absolutize(el.getAttribute("src"), baseUrl));
-  }
-  for (const el of root.querySelectorAll("[href]")) {
-    el.setAttribute("href", absolutize(el.getAttribute("href"), baseUrl));
-  }
-  for (const el of root.querySelectorAll("[srcset]")) {
-    el.setAttribute("srcset", rewriteSrcset(el.getAttribute("srcset"), baseUrl));
+  for (const attr of ["src", "href", "srcset"]) {
+    for (const el of root.querySelectorAll(`[${attr}]`)) {
+      const safe = sanitizeRewrite(attr, el.getAttribute(attr), baseUrl);
+      if (safe === null) {
+        el.removeAttribute(attr);
+      } else {
+        el.setAttribute(attr, safe);
+      }
+    }
   }
 }
 
@@ -480,7 +511,10 @@ function scrollToFragment(container, fragment) {
 }
 
 function stateHtml(state, label) {
-  return `<div class="link-preview-body link-preview-${state}">${label}</div>`;
+  const div = document.createElement("div");
+  div.className = `link-preview-body link-preview-${state}`;
+  div.textContent = label;
+  return div;
 }
 
 // Entry point last: everything above (including consts, which do not hoist)
