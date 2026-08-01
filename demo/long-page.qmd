@@ -17,6 +17,11 @@ dominates the deposit.
 
 Mass conservation forces liquid outward to replenish the edge.
 
+```python
+def height_averaged_radial_velocity(radius, time, drop_radius, drying_time, contact_angle):
+    return (drop_radius / (4 * radius * (drying_time - time))) * ((1 - (radius / drop_radius) ** 2) ** -0.5 - (1 - (radius / drop_radius) ** 2))
+```
+
 ## Pinned contact lines
 
 This is the fragment-scroll target: a link to

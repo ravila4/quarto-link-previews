@@ -12,14 +12,43 @@
 .link-preview-body {
   max-height: 320px;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   padding: 0.6rem 0.8rem;
   font-size: 0.85em;
+  overflow-wrap: break-word;
 }
 
 .link-preview-body img {
   max-width: 100%;
   height: auto;
+}
+
+/* Quarto's page-columns grids (title banners, full-width layouts) assume the
+ * full page width and force a fixed multi-column track inside the popover;
+ * flatten them to normal flow at preview scale. */
+.link-preview-body .page-columns {
+  display: block;
+}
+
+.link-preview-body .page-columns > * {
+  width: auto;
+  max-width: 100%;
+}
+
+/* Long code lines wrap instead of forcing horizontal scroll. */
+.link-preview-body pre,
+.link-preview-body pre code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Tables cannot wrap; give them their own internal scroll instead of
+ * widening the popover. */
+.link-preview-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .link-preview-body h1 { font-size: 1.25em; }
@@ -31,7 +60,9 @@
 /* Chrome that reads as noise at preview scale. */
 .link-preview-body .anchorjs-link,
 .link-preview-body #quarto-margin-sidebar,
-.link-preview-body .cell-output-error {
+.link-preview-body .cell-output-error,
+.link-preview-body .code-tools-button,
+.link-preview-body .code-copy-button {
   display: none;
 }
 
