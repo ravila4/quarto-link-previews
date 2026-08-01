@@ -4,7 +4,7 @@
 // DOM glue at the bottom behind a `typeof document` guard so the module is
 // importable under Node without a DOM shim.
 
-export const VERSION = "0.1.1";
+export const VERSION = "0.1.2";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -30,8 +30,12 @@ export function resolveConfig(userCfg) {
     cfg.content = Array.isArray(raw.content) ? raw.content.join(", ") : String(raw.content);
   }
   // Metadata routed through the Lua filter arrives stringified; coerce and
-  // fall back to defaults on anything non-numeric.
+  // fall back to defaults on anything non-numeric. Number("") and
+  // Number(null) are 0, so empty values must be rejected before coercion.
   const toNumber = (value, fallback) => {
+    if (value === "" || value == null) {
+      return fallback;
+    }
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
   };
@@ -280,8 +284,9 @@ export function shouldApply(requestGeneration, currentGeneration) {
   return requestGeneration === currentGeneration;
 }
 
-// Elements that are inert or broken inside a preview: scripts never execute
-// after innerHTML insertion, iframes would load live embeds mid-hover.
+// Elements removed from extracted content before display. Removing script
+// tags stops ordinary script execution, but attached clones can still fire
+// inline on* handler attributes -- the glue strips those separately.
 export const STRIP_SELECTOR = "script, iframe";
 
 // ---------------------------------------------------------------------------
@@ -333,7 +338,7 @@ function readConfig() {
 }
 
 // Attributes isEligible cares about, mirrored into plain data.
-const ADAPTER_ATTRS = ["role", "data-no-preview", "data-glightbox", "aria-hidden", "download", "target"];
+const ADAPTER_ATTRS = ["role", "data-no-preview", "data-glightbox", "aria-hidden", "download"];
 
 function toLinkData(el) {
   const attrs = {};
@@ -345,11 +350,23 @@ function toLinkData(el) {
   return { href: el.href, classes: [...el.classList], attrs };
 }
 
+// A typo'd selector must not fail silently: warn once per selector so a site
+// owner can find out from the console why their config does nothing.
+const warnedSelectors = new Set();
+
+function warnBadSelector(selector, err) {
+  if (!warnedSelectors.has(selector)) {
+    warnedSelectors.add(selector);
+    console.warn(`link-previews: invalid selector ${JSON.stringify(selector)}`, err);
+  }
+}
+
 function matchesAny(el, selectors) {
   return selectors.some((selector) => {
     try {
       return el.matches(selector);
-    } catch {
+    } catch (err) {
+      warnBadSelector(selector, err);
       return false;
     }
   });
@@ -457,7 +474,14 @@ async function fetchAndExtract(url, cfg) {
   // inside the main content container, so a contained match must not be
   // duplicated alongside its ancestor.
   const parts = [];
-  for (const el of doc.querySelectorAll(cfg.content)) {
+  let matches;
+  try {
+    matches = doc.querySelectorAll(cfg.content);
+  } catch (err) {
+    warnBadSelector(cfg.content, err);
+    throw err;
+  }
+  for (const el of matches) {
     if (!parts.some((p) => p.contains(el))) {
       parts.push(el);
     }
@@ -473,7 +497,18 @@ async function fetchAndExtract(url, cfg) {
   for (const el of template.querySelectorAll(STRIP_SELECTOR)) {
     el.remove();
   }
-  rewriteUrls(template, url);
+  // Inline on* handlers would fire once the clone is attached to the live
+  // document, unlike script tags.
+  for (const el of template.querySelectorAll("*")) {
+    for (const name of el.getAttributeNames()) {
+      if (name.toLowerCase().startsWith("on")) {
+        el.removeAttribute(name);
+      }
+    }
+  }
+  // Redirects (e.g. Quarto aliases) change the base for relative URLs;
+  // response.url is the post-redirect URL.
+  rewriteUrls(template, response.url || url);
   return template;
 }
 

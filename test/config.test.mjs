@@ -62,6 +62,16 @@ test("non-numeric delay falls back to the default", () => {
   assert.deepEqual(resolveConfig({ delay: "soon" }).delay, [300, 0]);
 });
 
+// Number("") and Number(null) are both 0; an explicit empty YAML value must
+// not silently become a zero delay/width.
+test("empty-string delay falls back to the default", () => {
+  assert.deepEqual(resolveConfig({ delay: "" }).delay, [300, 0]);
+});
+
+test("null max-width falls back to the default", () => {
+  assert.equal(resolveConfig({ "max-width": null }).maxWidth, 500);
+});
+
 test("non-numeric max-width falls back to the default", () => {
   assert.equal(resolveConfig({ "max-width": "wide" }).maxWidth, 500);
 });

@@ -68,7 +68,7 @@ does not flicker the popover.
 
 ## Requirements and scope
 
-- Quarto ≥ 1.8 (tested against 1.8.27 and the current release in CI).
+- Quarto ≥ 1.8.27 (the versions CI actually tests: 1.8.27 and current release).
 - Previews use the tippy.js bundle Quarto ships with its hover features. If
   a future Quarto stops loading it, the extension logs one console note and
   does nothing else; links keep working normally.
@@ -80,6 +80,9 @@ does not flicker the popover.
   script-driven figures (plotly, mermaid, OJS) appear empty or are stripped.
 - Links injected after page load (search results dropdown, Shiny/OJS output)
   do not get previews.
+- On default listing cards the preview binds to the card element, which never
+  receives keyboard focus, so tabbing through card links shows no preview
+  there (standalone links still preview on focus).
 - Absolute self-links (`https://your-site.com/...`) are treated as external
   during `quarto preview` on localhost; they preview correctly in production.
 - Sites behind a strict CSP with script nonces will block the module script,

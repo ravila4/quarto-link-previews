@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] - 2026-08-01
+
+### Fixed
+
+- Relative URLs in previews of redirected pages (Quarto `aliases`) now
+  resolve against the post-redirect URL instead of silently 404ing.
+- Inline `on*` event-handler attributes are stripped from extracted content;
+  they would otherwise fire when the cloned nodes attach to the document.
+- Explicit empty/null `delay` and `max-width` values fall back to defaults
+  instead of coercing to 0.
+- Invalid `exclude`/`content` selectors log one console warning per selector
+  instead of failing silently.
+
+### Changed
+
+- `quarto-required` raised to 1.8.27 to match the floor CI actually tests.
+- CI injection asserts now cover the listing and fragment-scroll demo pages.
+
 ## [0.1.1] - 2026-08-01
 
 ### Fixed
