@@ -31,3 +31,6 @@ leaving nested rings.
 ## Closing
 
 Enough sections to force the preview to truncate and scroll.
+A [link to a missing page](nowhere.html) demonstrates the
+"no preview available" state without breaking navigation any further
+than the missing page already does.

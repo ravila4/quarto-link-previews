@@ -10,3 +10,8 @@ Try it: read about [the coffee-ring effect](demo/coffee.qmd), skim
 [a section deep inside it](demo/long-page.qmd#pinned-contact-lines).
 
 External links like [Quarto](https://quarto.org/) are left alone.
+
+::: {.no-previews-here}
+Links inside a configured `exclude` selector, like
+[this one](demo/coffee.qmd), are left alone too.
+:::

@@ -45,6 +45,27 @@ test("scalar exclude becomes a list", () => {
   assert.deepEqual(resolveConfig({ exclude: ".sidebar a" }).exclude, [".sidebar a"]);
 });
 
+// Metadata routed through pandoc.utils.stringify arrives as strings.
+test("string delay from YAML metadata is coerced to numbers", () => {
+  assert.deepEqual(resolveConfig({ delay: "250" }).delay, [250, 0]);
+});
+
+test("string delay pair is coerced to numbers", () => {
+  assert.deepEqual(resolveConfig({ delay: ["250", "100"] }).delay, [250, 100]);
+});
+
+test("string max-width is coerced to a number", () => {
+  assert.equal(resolveConfig({ "max-width": "640" }).maxWidth, 640);
+});
+
+test("non-numeric delay falls back to the default", () => {
+  assert.deepEqual(resolveConfig({ delay: "soon" }).delay, [300, 0]);
+});
+
+test("non-numeric max-width falls back to the default", () => {
+  assert.equal(resolveConfig({ "max-width": "wide" }).maxWidth, 500);
+});
+
 test("unknown keys are ignored", () => {
   const cfg = resolveConfig({ bogus: true });
   assert.equal(cfg.bogus, undefined);

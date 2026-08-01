@@ -29,12 +29,20 @@ export function resolveConfig(userCfg) {
   if (raw.content !== undefined) {
     cfg.content = Array.isArray(raw.content) ? raw.content.join(", ") : String(raw.content);
   }
+  // Metadata routed through the Lua filter arrives stringified; coerce and
+  // fall back to defaults on anything non-numeric.
+  const toNumber = (value, fallback) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
   if (raw.delay !== undefined) {
-    cfg.delay = Array.isArray(raw.delay) ? [raw.delay[0] ?? 300, raw.delay[1] ?? 0] : [raw.delay, 0];
+    cfg.delay = Array.isArray(raw.delay)
+      ? [toNumber(raw.delay[0], 300), toNumber(raw.delay[1], 0)]
+      : [toNumber(raw.delay, 300), 0];
   }
   const maxWidth = raw["max-width"] ?? raw.maxWidth;
   if (maxWidth !== undefined) {
-    cfg.maxWidth = maxWidth;
+    cfg.maxWidth = toNumber(maxWidth, DEFAULTS.maxWidth);
   }
   if (raw.exclude !== undefined) {
     cfg.exclude = Array.isArray(raw.exclude) ? raw.exclude.map(String) : [String(raw.exclude)];
