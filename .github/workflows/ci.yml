@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+
+  render-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 1.8.27 is the pinned floor we claim support for; release catches
+        # forward breakage in Quarto internals we depend on.
+        quarto: ["1.8.27", "release"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: ${{ matrix.quarto }}
+      - run: quarto render
+      # quarto render exits 0 even if the filter silently fails to inject the
+      # dependency, so assert the artifacts directly.
+      - name: Assert dependency injection
+        run: |
+          grep -q 'link-previews.*\.js.*type="module"\|type="module".*link-previews.*\.js' _site/index.html
+          grep -q 'link-previews.*\.js' _site/demo/coffee.html
+          test -f _site/site_libs/quarto-contrib/link-previews-0.1.0/link-previews.js
+          test -f _site/site_libs/quarto-contrib/link-previews-0.1.0/link-previews.css
+      - name: Assert config transport is valid JSON
+        run: |
+          grep -q 'id="link-previews-config"' _site/index.html
+          node -e '
+            const html = require("fs").readFileSync("_site/index.html", "utf8");
+            const m = html.match(/id="link-previews-config">([^<]*)</);
+            if (!m) throw new Error("config tag not found");
+            JSON.parse(m[1]);
+          '
