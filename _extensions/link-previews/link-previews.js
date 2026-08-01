@@ -256,6 +256,227 @@ export const STRIP_SELECTOR = "script, iframe";
 // DOM glue
 // ---------------------------------------------------------------------------
 
+function initLinkPreviews() {
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    return;
+  }
+  if (typeof window.tippy !== "function") {
+    console.info(
+      "link-previews: tippy.js not found; enable footnotes-hover, crossrefs-hover, " +
+        "or citations-hover, or remove the link-previews filter",
+    );
+    return;
+  }
+  const start = () => {
+    try {
+      bindAll();
+    } catch (err) {
+      console.warn("link-previews: setup failed", err);
+    }
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+}
+
+function readConfig() {
+  const tag = document.getElementById("link-previews-config");
+  let parsed = {};
+  if (tag) {
+    try {
+      parsed = JSON.parse(tag.textContent);
+    } catch (err) {
+      console.warn("link-previews: invalid config, using defaults", err);
+    }
+  }
+  return resolveConfig(parsed);
+}
+
+// Attributes isEligible cares about, mirrored into plain data.
+const ADAPTER_ATTRS = ["role", "data-no-preview", "data-glightbox", "aria-hidden", "download", "target"];
+
+function toLinkData(el) {
+  const attrs = {};
+  for (const name of ADAPTER_ATTRS) {
+    if (el.hasAttribute(name)) {
+      attrs[name] = el.getAttribute(name);
+    }
+  }
+  return { href: el.href, classes: [...el.classList], attrs };
+}
+
+function matchesAny(el, selectors) {
+  return selectors.some((selector) => {
+    try {
+      return el.matches(selector);
+    } catch {
+      return false;
+    }
+  });
+}
+
+function bindAll() {
+  const cfg = readConfig();
+  const page = { href: window.location.href };
+
+  // One scan at load. Popover content is never re-scanned, which is also the
+  // recursion guard: links inside a preview never get previews themselves.
+  const eligible = [];
+  for (const el of document.querySelectorAll("a[href]")) {
+    if (!isEligible(toLinkData(el), page, cfg).ok) continue;
+    if (matchesAny(el, cfg.exclude)) continue;
+    eligible.push({ el, ...splitTarget(el.href) });
+  }
+
+  const cardElements = [];
+  const cardIndex = new Map();
+  const records = eligible.map((entry, i) => {
+    const cardEl = entry.el.closest(".quarto-post");
+    let cardId = null;
+    if (cardEl) {
+      if (!cardIndex.has(cardEl)) {
+        cardIndex.set(cardEl, cardElements.length);
+        cardElements.push(cardEl);
+      }
+      cardId = cardIndex.get(cardEl);
+    }
+    return { id: i, href: entry.fetchUrl, cardId };
+  });
+
+  for (const binding of planBindings(records)) {
+    if (binding.type === "anchor") {
+      const entry = eligible[binding.anchorId];
+      bindPreview(entry.el, entry.fetchUrl, entry.fragment, cfg);
+    } else {
+      const first = eligible[binding.anchorIds[0]];
+      bindPreview(cardElements[binding.cardId], first.fetchUrl, first.fragment, cfg);
+    }
+  }
+}
+
+const previewCache = new Map();
+
+function bindPreview(el, fetchUrl, fragment, cfg) {
+  // Everything touching the tippy API is wrapped: presence of window.tippy
+  // does not guarantee its shape if Quarto ever swaps its hover library.
+  try {
+    window.tippy(el, {
+      theme: "quarto link-preview",
+      allowHTML: true,
+      interactive: true,
+      interactiveBorder: 10,
+      maxWidth: cfg.maxWidth,
+      delay: cfg.delay,
+      placement: "bottom-start",
+      appendTo: () => document.body,
+      trigger: "mouseenter focus",
+      touch: false,
+      content: stateHtml("loading", "Loading…"),
+      onShow(instance) {
+        loadContent(instance, fetchUrl, fragment, cfg);
+      },
+    });
+  } catch (err) {
+    console.warn("link-previews: failed to bind", err);
+  }
+}
+
+function loadContent(instance, fetchUrl, fragment, cfg) {
+  const generation = (instance._linkPreviewGen = (instance._linkPreviewGen ?? 0) + 1);
+  const live = () =>
+    shouldApply(generation, instance._linkPreviewGen) && instance.state.isVisible;
+
+  getOrFetch(previewCache, fetchUrl, (url) => fetchAndExtract(url, cfg))
+    .then((template) => {
+      if (!live()) return;
+      try {
+        const body = document.createElement("div");
+        body.className = "link-preview-body";
+        body.appendChild(template.cloneNode(true));
+        instance.setContent(body);
+        scrollToFragment(body, fragment);
+      } catch (err) {
+        console.warn("link-previews:", err);
+      }
+    })
+    .catch(() => {
+      if (!live()) return;
+      try {
+        instance.setContent(stateHtml("unavailable", "No preview available"));
+      } catch {
+        // tippy went away mid-flight; nothing to update
+      }
+    });
+}
+
+async function fetchAndExtract(url, cfg) {
+  const response = checkResponse(await fetch(url));
+  const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+
+  // Keep only top-level matches: with Quarto's defaults the title header sits
+  // inside the main content container, so a contained match must not be
+  // duplicated alongside its ancestor.
+  const parts = [];
+  for (const el of doc.querySelectorAll(cfg.content)) {
+    if (!parts.some((p) => p.contains(el))) {
+      parts.push(el);
+    }
+  }
+  if (parts.length === 0) {
+    throw new Error("link-previews: no content matched");
+  }
+
+  const template = document.createElement("div");
+  for (const part of parts) {
+    template.appendChild(document.importNode(part, true));
+  }
+  for (const el of template.querySelectorAll(STRIP_SELECTOR)) {
+    el.remove();
+  }
+  rewriteUrls(template, url);
+  return template;
+}
+
+function rewriteUrls(root, baseUrl) {
+  for (const el of root.querySelectorAll("[src]")) {
+    el.setAttribute("src", absolutize(el.getAttribute("src"), baseUrl));
+  }
+  for (const el of root.querySelectorAll("[href]")) {
+    el.setAttribute("href", absolutize(el.getAttribute("href"), baseUrl));
+  }
+  for (const el of root.querySelectorAll("[srcset]")) {
+    el.setAttribute("srcset", rewriteSrcset(el.getAttribute("srcset"), baseUrl));
+  }
+}
+
+function scrollToFragment(container, fragment) {
+  if (!fragment) return;
+  // Wait for the popover to lay out, then scroll only the preview box --
+  // scrollIntoView would also scroll the page itself.
+  requestAnimationFrame(() => {
+    let target = null;
+    try {
+      target = container.querySelector("#" + CSS.escape(fragment));
+    } catch {
+      return;
+    }
+    if (target) {
+      container.scrollTop =
+        target.getBoundingClientRect().top -
+        container.getBoundingClientRect().top +
+        container.scrollTop;
+    }
+  });
+}
+
+function stateHtml(state, label) {
+  return `<div class="link-preview-body link-preview-${state}">${label}</div>`;
+}
+
+// Entry point last: everything above (including consts, which do not hoist)
+// must be initialized before init runs synchronously.
 if (typeof document !== "undefined") {
-  console.log("link-previews: module loaded", VERSION);
+  initLinkPreviews();
 }
