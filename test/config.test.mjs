@@ -1,0 +1,52 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { resolveConfig } from "../_extensions/link-previews/link-previews.js";
+
+test("empty input yields defaults", () => {
+  const cfg = resolveConfig({});
+  assert.equal(cfg.content, "#title-block-header, #quarto-document-content");
+  assert.deepEqual(cfg.delay, [300, 0]);
+  assert.equal(cfg.maxWidth, 500);
+  assert.deepEqual(cfg.exclude, []);
+});
+
+test("undefined input yields defaults", () => {
+  assert.deepEqual(resolveConfig(undefined), resolveConfig({}));
+});
+
+// quarto.json.encode turns an empty Lua table into [] rather than {}.
+test("array input (empty Lua table) yields defaults", () => {
+  assert.deepEqual(resolveConfig([]), resolveConfig({}));
+});
+
+test("scalar delay becomes show/hide pair", () => {
+  assert.deepEqual(resolveConfig({ delay: 100 }).delay, [100, 0]);
+});
+
+test("delay pair is preserved", () => {
+  assert.deepEqual(resolveConfig({ delay: [200, 50] }).delay, [200, 50]);
+});
+
+test("kebab-case max-width from YAML is accepted", () => {
+  assert.equal(resolveConfig({ "max-width": 640 }).maxWidth, 640);
+});
+
+test("camelCase maxWidth is accepted", () => {
+  assert.equal(resolveConfig({ maxWidth: 640 }).maxWidth, 640);
+});
+
+test("content list is joined into a selector string", () => {
+  const cfg = resolveConfig({ content: ["#a", ".b"] });
+  assert.equal(cfg.content, "#a, .b");
+});
+
+test("scalar exclude becomes a list", () => {
+  assert.deepEqual(resolveConfig({ exclude: ".sidebar a" }).exclude, [".sidebar a"]);
+});
+
+test("unknown keys are ignored", () => {
+  const cfg = resolveConfig({ bogus: true });
+  assert.equal(cfg.bogus, undefined);
+  assert.deepEqual(cfg.delay, [300, 0]);
+});
