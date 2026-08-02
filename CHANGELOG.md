@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.5] - 2026-08-02
+
+### Fixed
+
+- Banner bleed reaches the popover's right edge: the banner sits inside the
+  title-block header (a page-columns element), so the grid flatten's child
+  width cap was holding its right edge ~two paddings short.
+
 ## [0.1.4] - 2026-08-02
 
 ### Fixed

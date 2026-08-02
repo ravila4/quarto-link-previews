@@ -63,6 +63,10 @@
 .link-preview-body .quarto-title-banner {
   margin: calc(-1 * var(--lp-pad-y)) calc(-1 * var(--lp-pad-x)) var(--lp-pad-y);
   padding: var(--lp-pad-y) var(--lp-pad-x);
+  /* The banner sits inside the title-block header, itself a page-columns
+   * element, so the child width cap above would otherwise hold the right
+   * edge short of the bleed. */
+  max-width: none;
 }
 
 /* Long code lines wrap instead of forcing horizontal scroll. */
