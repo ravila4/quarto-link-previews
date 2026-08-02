@@ -1,13 +1,20 @@
 ---
 title: "Link Previews for Quarto"
+toc: true
 ---
 
-Hover over an internal link to see a preview of the target page, in the style
-of [Quartz](https://quartz.jzhao.xyz/) digital gardens.
+Hover previews for internal links on Quarto websites, in the style of
+[Quartz](https://quartz.jzhao.xyz/) digital gardens. When a reader rests
+the pointer on an internal link, a popover shows the target page's title
+and content, enough to decide whether the jump is worth it.
 
-Try it: read about [the coffee-ring effect](demo/coffee.qmd), skim
+**Try it on this page.** Read about
+[the coffee-ring effect](demo/coffee.qmd), skim
 [a long page](demo/long-page.qmd), or jump straight to
-[a section deep inside it](demo/long-page.qmd#pinned-contact-lines).
+[a section deep inside it](demo/long-page.qmd#pinned-contact-lines). That
+preview opens already scrolled to the section. Sweep across the cards on
+[the listing demo](demo/listing.qmd). Toggle dark mode in the navbar: the
+popover follows the theme.
 
 External links like [Quarto](https://quarto.org/) are left alone.
 
@@ -15,3 +22,121 @@ External links like [Quarto](https://quarto.org/) are left alone.
 Links inside a configured `exclude` selector, like
 [this one](demo/coffee.qmd), are left alone too.
 :::
+
+## Install
+
+From your website project's root:
+
+```bash
+quarto add ravila4/quarto-link-previews
+```
+
+Then enable the filter in `_quarto.yml`:
+
+```yaml
+filters:
+  - ravila4/link-previews
+```
+
+That is the entire setup; the defaults below apply. To make installs
+reproducible, pin a tag from the
+[releases page](https://github.com/ravila4/quarto-link-previews/releases):
+`quarto add ravila4/quarto-link-previews@vX.Y.Z`.
+
+## Configure
+
+All keys are optional, set under `link-previews:` in `_quarto.yml`:
+
+```yaml
+link-previews:
+  content: "#title-block-header, #quarto-document-content"
+  delay: [300, 0]     # show/hide delay in ms; a scalar sets show-delay only
+  max-width: 500      # popover width in px
+  exclude:            # links matching these selectors never preview
+    - ".sidebar-recent a"
+```
+
+The same keys in a page's front matter override the site values for that
+page.
+
+### Turning previews off
+
+| Scope | How |
+|---|---|
+| One link | `no-preview` class or `data-no-preview` attribute on the anchor |
+| A region | add a selector to `exclude` (how the paragraph above opts out) |
+| One page | `link-previews: enabled: false` in that page's front matter |
+| Whole site | `enabled: false` under `link-previews:` in `_quarto.yml` |
+
+### Styling
+
+Popover colors come from Quarto's own tippy theme, so previews track your
+site theme, light and dark, without configuration. Three custom properties
+tune the rest. Set them on `:root` in your site's CSS:
+
+```css
+:root {
+  --link-preview-font-size: 1rem;          /* default 1em ≈ 14px */
+  --link-preview-border-color: #8a8d8f;    /* default: 30% of the text color */
+  --link-preview-shadow: none;             /* default: soft elevation shadow */
+}
+```
+
+## Reference
+
+### Options
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | `true` | Kill switch, per page or site-wide |
+| `content` | `"#title-block-header, #quarto-document-content"` | Selectors extracted from the target page |
+| `delay` | `[300, 0]` | tippy show/hide delay in ms |
+| `max-width` | `500` | Popover max width in px |
+| `exclude` | `[]` | Extra CSS selectors whose links never get previews |
+
+### CSS custom properties
+
+| Property | Default | Meaning |
+|---|---|---|
+| `--link-preview-font-size` | `1em` (≈ 14px) | Preview text size |
+| `--link-preview-border-color` | 30% of the text color | Popover border color |
+| `--link-preview-shadow` | soft elevation shadow | Popover box-shadow; `none` to remove |
+
+### What gets previewed
+
+Same-origin links to other HTML pages of the site, including links from
+listing cards and grids. Links to another page's `#section` open the
+preview scrolled to that section. Everything else is left alone: external
+links, navigation chrome (navbar, sidebar, TOC, pagination), footnotes and
+cross-references (Quarto's own hovers keep those), lightbox image links,
+and downloads.
+
+On default listing cards, which contain several anchors pointing at the
+same post, the preview binds once per card, so sweeping the mouse across a
+card does not flicker the popover.
+
+## How it works
+
+Quarto ships tippy.js on every HTML page for its footnote and
+cross-reference hovers. This extension reuses that bundle: on the first
+hover of an eligible link it fetches the target page, extracts the title
+block and article content, rewrites relative URLs, and shows the result in
+a popover themed like Quarto's own. Fetches are cached, one per target
+page, so repeat hovers are instant. There is no build step and no index
+file, so previews always reflect the pages as rendered.
+
+## Requirements and limitations
+
+- Quarto ≥ 1.8.27 (the versions CI tests: 1.8.27 and current release).
+- Hover is a pointer gesture: the extension is inactive on touch devices.
+- Pages are previewed as static HTML: MathJax renders as source TeX, and
+  script-driven figures (plotly, mermaid, OJS) appear empty.
+- Links injected after page load (search dropdown, Shiny/OJS output) do
+  not get previews.
+- Absolute self-links (`https://your-site.com/...`) count as external
+  during `quarto preview` on localhost; they preview correctly in
+  production.
+
+Source, issues, and changelog:
+[github.com/ravila4/quarto-link-previews](https://github.com/ravila4/quarto-link-previews).
+MIT licensed.

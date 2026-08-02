@@ -9,9 +9,12 @@ website:
   navbar:
     left:
       - href: index.qmd
-        text: Home
+        text: Docs
       - href: demo/listing.qmd
-        text: Posts
+        text: Listing demo
+    right:
+      - icon: github
+        href: https://github.com/ravila4/quarto-link-previews
 
 format:
   html:
