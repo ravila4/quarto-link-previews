@@ -46,19 +46,32 @@ make installs reproducible, pin a tag from the
 
 ## Configure
 
-All keys are optional, set under `link-previews:` in `_quarto.yml`:
+All keys are optional, set in `_quarto.yml`:
 
 ```yaml
-link-previews:
-  content: "#title-block-header, #quarto-document-content"
-  delay: [300, 0]     # show/hide delay in ms; a scalar sets show-delay only
-  max-width: 500      # popover width in px
-  exclude:            # links matching these selectors never preview
-    - ".sidebar-recent a"
+extensions:
+  link-previews:
+    content: "#title-block-header, #quarto-document-content"
+    delay: [300, 0]     # show/hide delay in ms; a scalar sets show-delay only
+    max-width: 500      # popover width in px
+    exclude:            # links matching these selectors never preview
+      - ".sidebar-recent a"
 ```
 
-The same keys in a page's front matter override the site values for that
-page.
+A bare top-level `link-previews:` block, without the `extensions:` wrapper,
+works as well and predates the nested form. Both are read and their keys are
+combined, with the nested one winning a tie. Editors that read the
+extension's schema, such as
+[Quarto Wizard](https://m.canouil.dev/quarto-wizard/), complete and validate
+the nested spelling, so it is the better default for new projects.
+
+The same block in a page's front matter overrides the site settings for that
+page. It replaces the site block rather than merging into it key by key, so
+repeat any site-wide key you still want on that page. That is how Quarto
+merges document metadata into project metadata, not something this filter
+decides. [The long page](demo/long-page.qmd) in the demo does this: it
+widens its own previews to 640px and restates the site's `exclude` list to
+keep it.
 
 ### Turning previews off
 
@@ -66,7 +79,7 @@ page.
 |---|---|
 | One link | `no-preview` class or `data-no-preview` attribute on the anchor |
 | A region | add a selector to `exclude` (how the paragraph above opts out) |
-| One page | `link-previews: enabled: false` in that page's front matter |
+| One page | `enabled: false` under `link-previews:` in that page's front matter |
 | Whole site | `enabled: false` under `link-previews:` in `_quarto.yml` |
 
 ### Styling
@@ -123,8 +136,9 @@ cross-reference hovers. This extension reuses that bundle: on the first
 hover of an eligible link it fetches the target page, extracts the title
 block and article content, rewrites relative URLs, and shows the result in
 a popover themed like Quarto's own. Fetches are cached, one per target
-page, so repeat hovers are instant. There is no build step and no index
-file, so previews always reflect the pages as rendered.
+page, so repeat hovers are instant. Everything happens against the rendered
+site at hover time, so a preview always shows the page as it currently
+stands.
 
 ## Requirements and limitations
 

@@ -2,7 +2,7 @@
 
 Hover previews for internal links on Quarto websites, in the style of
 [Quartz](https://quartz.jzhao.xyz/) digital gardens and Obsidian's page
-preview: hover a link to another page on your site and a popover shows the target's
+preview. Hover a link to another page on your site and a popover shows the target's
 title, date, and content without navigating away.
 
 **Try it live:** the documentation site at
@@ -11,9 +11,8 @@ runs the extension on itself.
 
 ![Hovering an internal link shows a preview card of the target page](docs/assets/preview-light.png)
 
-There is no build step and no index to maintain. On hover, the target page is
-fetched (same origin, so it is already on your host), the article content is
-extracted, and it is displayed with the tippy.js instance Quarto already
+On hover, the target page is fetched (same origin, so it is already on your host),
+the article content is extracted, and it is displayed with the tippy.js instance Quarto already
 ships for its footnote and cross-reference hovers. Previews match your site
 theme, light and dark, automatically.
 
@@ -34,17 +33,27 @@ filters:
 
 ## Configuration
 
-All keys are optional, set under `link-previews:` in `_quarto.yml`
-(site-wide) or in a page's front matter (per-page override):
+All keys are optional, set in `_quarto.yml` (site-wide) or in a page's front
+matter (per-page override):
 
 ```yaml
-link-previews:
-  content: "#title-block-header, #quarto-document-content"
-  delay: [300, 0]     # show/hide delay in ms; scalar means show-delay only
-  max-width: 500      # popover width in px
-  exclude:            # links matching these selectors never preview
-    - ".sidebar-recent a"
+extensions:
+  link-previews:
+    content: "#title-block-header, #quarto-document-content"
+    delay: [300, 0]     # show/hide delay in ms; scalar means show-delay only
+    max-width: 500      # popover width in px
+    exclude:            # links matching these selectors never preview
+      - ".sidebar-recent a"
 ```
+
+A bare top-level `link-previews:` block works too, and predates the nested
+form. Both are read and their keys are combined, with the nested one winning
+a tie. The nested spelling is what editors complete against the extension's
+schema, so prefer it in new projects.
+
+A block in a page's front matter replaces the site block rather than merging
+into it, so repeat any site-wide key you still want on that page. That is
+Quarto's metadata merge, not a choice this filter makes.
 
 | Key | Default | Meaning |
 |---|---|---|

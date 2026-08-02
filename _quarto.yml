@@ -26,6 +26,7 @@ format:
 filters:
   - link-previews
 
-link-previews:
-  exclude:
-    - ".no-previews-here a"
+extensions:
+  link-previews:
+    exclude:
+      - ".no-previews-here a"

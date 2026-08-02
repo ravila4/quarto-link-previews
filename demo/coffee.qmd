@@ -4,6 +4,10 @@ description: "Why a dried coffee drop leaves a ring, not a disc."
 date: 2026-07-01
 categories: [physics, demo]
 title-block-banner: true
+# The pre-0.2.0 spelling, without the extensions: wrapper. Still read, and
+# kept here so the demo render exercises it.
+link-previews:
+  delay: [150, 0]
 ---
 
 A drying drop pins its contact line, so the footprint cannot shrink.

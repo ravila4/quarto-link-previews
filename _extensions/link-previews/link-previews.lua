@@ -31,6 +31,33 @@ local function to_plain(value)
   return pandoc.utils.stringify(value)
 end
 
+local function as_table(value)
+  if value == nil then
+    return nil
+  end
+  local plain = to_plain(value)
+  if type(plain) == "table" then
+    return plain
+  end
+  return nil
+end
+
+-- Options are read from `link-previews:` at the metadata root and from
+-- `extensions: link-previews:`. The nested spelling is the one editor
+-- tooling completes against _schema.yml, so both have to work; nested keys
+-- win where a key is set in both places.
+local function read_config(m)
+  local cfg = as_table(m["link-previews"]) or {}
+  local extensions = as_table(m["extensions"])
+  local nested = extensions and as_table(extensions["link-previews"])
+  if nested then
+    for key, value in pairs(nested) do
+      cfg[key] = value
+    end
+  end
+  return cfg
+end
+
 local function warn_if_tippy_absent(m)
   -- Quarto only ships tippy.js when at least one hover feature is on. The
   -- options are on by default and invisible here unless set explicitly, so an
@@ -49,13 +76,7 @@ function Meta(m)
     return
   end
 
-  local cfg = {}
-  if m["link-previews"] ~= nil then
-    local plain = to_plain(m["link-previews"])
-    if type(plain) == "table" then
-      cfg = plain
-    end
-  end
+  local cfg = read_config(m)
   if cfg.enabled == false then
     return
   end
@@ -65,7 +86,7 @@ function Meta(m)
 
   quarto.doc.add_html_dependency({
     name = "link-previews",
-    version = "0.1.5",
+    version = "0.2.0",
     scripts = { { path = "link-previews.js", attribs = { type = "module" } } },
     stylesheets = { "link-previews.css" },
   })

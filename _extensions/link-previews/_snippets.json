@@ -1,0 +1,30 @@
+{
+  "Enable link previews": {
+    "prefix": "link-previews-filter",
+    "body": ["filters:", "  - ravila4/link-previews"],
+    "description": "Turn on hover link previews for the site in _quarto.yml"
+  },
+  "Link previews configuration": {
+    "prefix": "link-previews-config",
+    "body": [
+      "extensions:",
+      "  link-previews:",
+      "    delay: [${1:300}, ${2:0}]",
+      "    max-width: ${3:500}",
+      "    exclude:",
+      "      - \"${4:.sidebar-recent a}\"",
+      "$0"
+    ],
+    "description": "Configuration block for link previews, with every key at its default"
+  },
+  "Disable link previews on this page": {
+    "prefix": "link-previews-off",
+    "body": ["extensions:", "  link-previews:", "    enabled: false"],
+    "description": "Front matter block that turns previews off for one page"
+  },
+  "Link without a preview": {
+    "prefix": "link-previews-no-preview",
+    "body": "[${1:text}](${2:page.qmd}){.no-preview}",
+    "description": "Internal link that never shows a preview"
+  }
+}

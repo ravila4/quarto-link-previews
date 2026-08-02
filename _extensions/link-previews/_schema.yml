@@ -1,0 +1,55 @@
+# Options for editor tooling: autocompletion, hover docs, and validation of
+# `extensions: link-previews:` in _quarto.yml, _metadata.yml, and front
+# matter. Defaults here mirror DEFAULTS in link-previews.js, which stays the
+# single source of truth at runtime.
+
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v2/extension-schema.json
+
+options:
+  enabled:
+    type: boolean
+    default: true
+    description: "Kill switch. Set false in a page's front matter to disable previews on that page, or in _quarto.yml to disable them site-wide."
+  content:
+    type: [string, array]
+    default: "#title-block-header, #quarto-document-content"
+    description: "CSS selectors extracted from the target page and shown in the popover. A list is joined with commas."
+    items:
+      type: string
+    completion:
+      type: freeform
+      placeholder: "#title-block-header, #quarto-document-content"
+  delay:
+    type: [integer, array]
+    default: [300, 0]
+    description: "tippy show and hide delay in milliseconds. A single number sets the show delay and leaves the hide delay at 0."
+    minimum: 0
+    items:
+      type: integer
+      minimum: 0
+    minItems: 1
+    maxItems: 2
+  max-width:
+    type: integer
+    default: 500
+    minimum: 1
+    aliases: [maxWidth]
+    description: "Maximum popover width in pixels."
+    completion:
+      type: size
+  exclude:
+    type: array
+    default: []
+    description: "CSS selectors whose descendant links never get a preview, for example \".sidebar-recent a\"."
+    items:
+      type: string
+
+classes:
+  no-preview:
+    description: "Suppresses the preview on a single link. Equivalent to the data-no-preview attribute."
+
+attributes:
+  _any:
+    data-no-preview:
+      type: boolean
+      description: "Suppresses the preview on a single link. Equivalent to the no-preview class."

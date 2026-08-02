@@ -38,12 +38,28 @@ jobs:
           done
           test -f _site/site_libs/quarto-contrib/link-previews-*/link-previews.js
           test -f _site/site_libs/quarto-contrib/link-previews-*/link-previews.css
-      - name: Assert config transport is valid JSON
+      # Both config spellings have to reach the browser: _quarto.yml uses the
+      # nested `extensions: link-previews:` form that editor tooling completes
+      # against _schema.yml, coffee.qmd uses the bare top-level form, and
+      # long-page.qmd overrides the site block from its own front matter.
+      - name: Assert config transport and per-page overrides
         run: |
           grep -q 'id="link-previews-config"' _site/index.html
           node -e '
-            const html = require("fs").readFileSync("_site/index.html", "utf8");
-            const m = html.match(/id="link-previews-config">([^<]*)</);
-            if (!m) throw new Error("config tag not found");
-            JSON.parse(m[1]);
+            const fs = require("fs");
+            const read = (page) => {
+              const html = fs.readFileSync("_site/" + page, "utf8");
+              const m = html.match(/id="link-previews-config">([^<]*)</);
+              if (!m) throw new Error("config tag not found in " + page);
+              return JSON.parse(m[1]);
+            };
+            const site = read("index.html");
+            if (site.exclude.length !== 1) throw new Error("nested site config not read");
+            if (site["max-width"] !== undefined) throw new Error("max-width leaked to the site config");
+            const legacy = read("demo/coffee.html");
+            if (Number(legacy.delay[0]) !== 150) throw new Error("top-level page config not read");
+            if (legacy.exclude.length !== 1) throw new Error("the two spellings did not combine");
+            const override = read("demo/long-page.html");
+            if (Number(override["max-width"]) !== 640) throw new Error("page override not applied");
+            if (override.exclude.length !== 1) throw new Error("restated exclude missing from the override");
           '

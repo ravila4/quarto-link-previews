@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-08-02
+
+### Added
+
+- Options can also be written nested under a top-level `extensions:` key,
+  as `extensions: link-previews:`. The existing top-level `link-previews:`
+  spelling keeps working; keys from both are combined and the nested one
+  wins a tie. Nesting is what editor tooling completes against `_schema.yml`,
+  and it keeps the site metadata root uncluttered.
+- `_schema.yml` and `_snippets.json`, so Quarto Wizard offers completion,
+  hover documentation, validation, and snippets for the options.
+- A root `example.qmd`: the smallest working setup, which the extension
+  listings ask submissions to provide.
+
 ## [0.1.5] - 2026-08-02
 
 ### Fixed

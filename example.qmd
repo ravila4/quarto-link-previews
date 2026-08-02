@@ -2,9 +2,9 @@
 title: "Minimal Example"
 ---
 
-The smallest setup that produces hover previews: install the extension, add
-one line to `_quarto.yml`, done. This page is the result. Hover the links
-under [Result](#result).
+The smallest setup that produces hover previews: install the extension,
+point `_quarto.yml` at the filter, done. This page is the result. Hover the
+links under [Result](#result).
 
 ## Setup
 
@@ -20,8 +20,7 @@ filters:
   - ravila4/link-previews
 ```
 
-No other configuration is required. Previews inherit your site theme, light
-and dark.
+Previews inherit your site theme, light and dark.
 
 ## Result
 
@@ -39,16 +38,18 @@ page](demo/coffee.qmd){.no-preview}.
 Every key below is optional and shown at its default.
 
 ```{.yaml filename="_quarto.yml"}
-link-previews:
-  enabled: true       # false anywhere disables previews for that scope
-  content: "#title-block-header, #quarto-document-content"
-  delay: [300, 0]     # tippy show/hide delay in ms
-  max-width: 500      # popover width in px
-  exclude: []         # CSS selectors whose links never preview
+extensions:
+  link-previews:
+    enabled: true       # false anywhere disables previews for that scope
+    content: "#title-block-header, #quarto-document-content"
+    delay: [300, 0]     # tippy show/hide delay in ms
+    max-width: 500      # popover width in px
+    exclude: []         # CSS selectors whose links never preview
 ```
 
-The same keys work in a page's front matter, where they override the site
-values for that page.
+The same block works in a page's front matter, where it replaces the site
+settings for that page. [The long page](demo/long-page.qmd) does exactly
+that to widen its own previews to 640px.
 
 See [the documentation](index.qmd) for the full reference, styling hooks,
 and known limitations.

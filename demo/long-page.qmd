@@ -3,10 +3,20 @@ title: "A Long Page"
 description: "Many sections, for testing fragment scrolling and truncation."
 date: 2026-07-02
 categories: [demo]
+extensions:
+  link-previews:
+    max-width: 640
+    # Front matter replaces the site block rather than merging into it, so
+    # the site-wide exclude has to be repeated to survive here.
+    exclude:
+      - ".no-previews-here a"
 ---
 
 Links here go to [the coffee-ring page](coffee.qmd) and back
 [home](../index.qmd).
+
+Previews opened from this page are 640px wide instead of the site's 500,
+set from this page's front matter.
 
 ## Evaporation at the edge
 
