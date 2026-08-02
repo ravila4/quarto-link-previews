@@ -38,8 +38,9 @@ filters:
   - ravila4/link-previews
 ```
 
-That is the entire setup; the defaults below apply. To make installs
-reproducible, pin a tag from the
+That is the entire setup; the defaults below apply.
+[A minimal example page](example.qmd) shows the whole thing end to end. To
+make installs reproducible, pin a tag from the
 [releases page](https://github.com/ravila4/quarto-link-previews/releases):
 `quarto add ravila4/quarto-link-previews@vX.Y.Z`.
 

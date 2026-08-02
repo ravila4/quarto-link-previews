@@ -33,7 +33,7 @@ jobs:
       # dependency, so assert the artifacts directly.
       - name: Assert dependency injection
         run: |
-          for page in index.html demo/coffee.html demo/listing.html demo/long-page.html; do
+          for page in index.html example.html demo/coffee.html demo/listing.html demo/long-page.html; do
             grep -Eq '<script src="[^"]*link-previews[^"]*\.js" type="module">' "_site/$page"
           done
           test -f _site/site_libs/quarto-contrib/link-previews-*/link-previews.js

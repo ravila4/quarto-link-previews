@@ -1,0 +1,54 @@
+---
+title: "Minimal Example"
+---
+
+The smallest setup that produces hover previews: install the extension, add
+one line to `_quarto.yml`, done. This page is the result. Hover the links
+under [Result](#result).
+
+## Setup
+
+```bash
+quarto add ravila4/quarto-link-previews
+```
+
+```{.yaml filename="_quarto.yml"}
+project:
+  type: website
+
+filters:
+  - ravila4/link-previews
+```
+
+No other configuration is required. Previews inherit your site theme, light
+and dark.
+
+## Result
+
+Hover [the coffee-ring page](demo/coffee.qmd) for a full page preview, or
+[a section inside the long page](demo/long-page.qmd#pinned-contact-lines)
+to open the preview already scrolled to that heading.
+
+Links the extension leaves alone: external ones like
+[Quarto](https://quarto.org/), and any anchor carrying the `no-preview`
+class, like [this link to the same coffee-ring
+page](demo/coffee.qmd){.no-preview}.
+
+## Optional configuration
+
+Every key below is optional and shown at its default.
+
+```{.yaml filename="_quarto.yml"}
+link-previews:
+  enabled: true       # false anywhere disables previews for that scope
+  content: "#title-block-header, #quarto-document-content"
+  delay: [300, 0]     # tippy show/hide delay in ms
+  max-width: 500      # popover width in px
+  exclude: []         # CSS selectors whose links never preview
+```
+
+The same keys work in a page's front matter, where they override the site
+values for that page.
+
+See [the documentation](index.qmd) for the full reference, styling hooks,
+and known limitations.
