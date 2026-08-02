@@ -3,6 +3,7 @@ title: "The Coffee-Ring Effect"
 description: "Why a dried coffee drop leaves a ring, not a disc."
 date: 2026-07-01
 categories: [physics, demo]
+title-block-banner: true
 ---
 
 A drying drop pins its contact line, so the footprint cannot shrink.

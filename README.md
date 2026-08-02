@@ -53,6 +53,20 @@ link-previews:
 Per-link opt-outs: add the `no-preview` class or a `data-no-preview`
 attribute to any anchor.
 
+### Styling
+
+Popover colors come from Quarto's own tippy theme, so previews track your
+site theme automatically. Three CSS custom properties tune the rest; set
+them on `:root` in your site CSS:
+
+```css
+:root {
+  --link-preview-font-size: 1rem;          /* default 1em ≈ 14px */
+  --link-preview-border-color: #8a8d8f;    /* default: 30% of the text color */
+  --link-preview-shadow: none;             /* default: soft elevation shadow */
+}
+```
+
 ## What gets previewed
 
 Same-origin links to other HTML pages of the site, including links from

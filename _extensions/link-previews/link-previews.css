@@ -1,8 +1,22 @@
 /* link-previews popover styling. Colors come from Quarto's `quarto` tippy
  * theme so light/dark modes track the site theme; only layout lives here. */
 
+/* The quarto tippy theme borders with Bootstrap's stock gray (#dee2e6) in
+ * both modes, which vanishes on themes whose background sits near it.
+ * Derive the border from the text color instead so it contrasts with any
+ * palette, and lift the popover with a shadow. Both are overridable via
+ * custom properties set on :root. */
 .tippy-box[data-theme~="link-preview"] {
   overflow: hidden;
+  border-color: var(
+    --link-preview-border-color,
+    color-mix(in srgb, currentColor 30%, transparent)
+  );
+  box-shadow: var(
+    --link-preview-shadow,
+    0 6px 24px rgb(0 0 0 / 0.12),
+    0 2px 6px rgb(0 0 0 / 0.08)
+  );
 }
 
 .tippy-box[data-theme~="link-preview"] .tippy-content {
@@ -10,12 +24,16 @@
 }
 
 .link-preview-body {
+  --lp-pad-y: 0.6rem;
+  --lp-pad-x: 0.8rem;
   max-height: 320px;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.85em;
+  padding: var(--lp-pad-y) var(--lp-pad-x);
+  /* The tippy box already sets 0.875rem; ride it rather than shrink
+   * further. Overridable via --link-preview-font-size on :root. */
+  font-size: var(--link-preview-font-size, 1em);
   overflow-wrap: break-word;
 }
 
@@ -27,13 +45,24 @@
 /* Quarto's page-columns grids (title banners, full-width layouts) assume the
  * full page width and force a fixed multi-column track inside the popover;
  * flatten them to normal flow at preview scale. */
+/* !important: Quarto's grid rules carry body-class selectors like
+ * body.fullcontent:not(.floating):not(.docked) .page-columns, which
+ * out-specify anything reasonable scoped to the preview body. */
 .link-preview-body .page-columns {
-  display: block;
+  display: block !important;
 }
 
 .link-preview-body .page-columns > * {
   width: auto;
   max-width: 100%;
+}
+
+/* Banner title blocks carry their own background; bleed them to the popover
+ * edges and restore the internal padding the flattened grid used to
+ * provide, so title text does not sit flush against the color boundary. */
+.link-preview-body .quarto-title-banner {
+  margin: calc(-1 * var(--lp-pad-y)) calc(-1 * var(--lp-pad-x)) var(--lp-pad-y);
+  padding: var(--lp-pad-y) var(--lp-pad-x);
 }
 
 /* Long code lines wrap instead of forcing horizontal scroll. */

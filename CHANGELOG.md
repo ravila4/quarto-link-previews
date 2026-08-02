@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - 2026-08-02
+
+### Fixed
+
+- Banner title blocks bleed to the popover edges with their own internal
+  padding, instead of floating inset with title text flush against the
+  color boundary (regression from the 0.1.3 grid flatten).
+
+### Changed
+
+- Popover border derives from the text color and the box gets an elevation
+  shadow; the previous stock Bootstrap border gray disappeared against
+  themes with a nearby background.
+- Preview text rides tippy's 0.875rem instead of shrinking a further 15%.
+- New styling hooks, settable on `:root`: `--link-preview-font-size`,
+  `--link-preview-border-color`, `--link-preview-shadow`.
+
 ## [0.1.3] - 2026-08-01
 
 ### Fixed
