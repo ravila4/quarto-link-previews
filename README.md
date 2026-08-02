@@ -5,6 +5,10 @@ Hover previews for internal links on Quarto websites, in the style of
 preview: hover a link to another page on your site and a popover shows the target's
 title, date, and content without navigating away.
 
+**Try it live:** the documentation site at
+[ravila4.github.io/quarto-link-previews](https://ravila4.github.io/quarto-link-previews/)
+runs the extension on itself.
+
 ![Hovering an internal link shows a preview card of the target page](docs/assets/preview-light.png)
 
 There is no build step and no index to maintain. On hover, the target page is
