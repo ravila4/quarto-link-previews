@@ -413,10 +413,62 @@ function bindAll() {
 
 const previewCache = new Map();
 
+// ---------------------------------------------------------------------------
+// Anchoring on wrapped links
+// ---------------------------------------------------------------------------
+
+// An inline link that wraps has one client rect per line box, and its
+// bounding box is their union: for a link broken across a line the union
+// spans most of the text column. Anchoring there can drop the popover a
+// column width from the pointer, out of reach of the interactive border, so
+// it hides before the reader can scroll it. Pick the line box the pointer is
+// actually in. Distance is measured to the rect, clamped per axis, so a
+// pointer inside one scores zero and the leading between two lines resolves
+// to the nearer of them without a separate branch.
+export function pickAnchorRectIndex(rects, pointer) {
+  const count = rects?.length ?? 0;
+  if (count < 2 || !pointer) {
+    return 0;
+  }
+  let best = 0;
+  let bestDistance = Infinity;
+  for (let i = 0; i < count; i += 1) {
+    const rect = rects[i];
+    const dx = Math.max(rect.left - pointer.x, 0, pointer.x - rect.right);
+    const dy = Math.max(rect.top - pointer.y, 0, pointer.y - rect.bottom);
+    const distance = dx * dx + dy * dy;
+    if (distance < bestDistance) {
+      best = i;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
 function bindPreview(el, fetchUrl, fragment, cfg) {
   // Everything touching the tippy API is wrapped: presence of window.tippy
   // does not guarantee its shape if Quarto ever swaps its hover library.
   try {
+    // Last pointer position over the link. Deliberately not cleared on
+    // mouseleave: moving onto an interactive popover leaves the link, and
+    // re-choosing the line box then would slide the popover out from under
+    // the pointer. Keyboard focus never sets it, which is what anchors a
+    // tabbed-to link at its first line.
+    let pointerX = null;
+    let pointerY = null;
+    el.addEventListener(
+      "mousemove",
+      (event) => {
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+      },
+      { passive: true },
+    );
+
+    // Fixed for the life of one popover so it cannot drift mid-read, but the
+    // rect itself is re-read on every reposition so scrolling still tracks.
+    let anchorIndex = 0;
+
     window.tippy(el, {
       theme: "quarto link-preview",
       allowHTML: true,
@@ -429,7 +481,13 @@ function bindPreview(el, fetchUrl, fragment, cfg) {
       trigger: "mouseenter focus",
       touch: false,
       content: stateHtml("loading", "Loading…"),
+      getReferenceClientRect: () =>
+        el.getClientRects()[anchorIndex] ?? el.getBoundingClientRect(),
       onShow(instance) {
+        anchorIndex = pickAnchorRectIndex(
+          el.getClientRects(),
+          pointerX === null ? null : { x: pointerX, y: pointerY },
+        );
         loadContent(instance, fetchUrl, fragment, cfg);
       },
     });

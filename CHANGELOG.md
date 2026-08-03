@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - A root `example.qmd`: the smallest working setup, which the extension
   listings ask submissions to provide.
 
+### Fixed
+
+- A link that wraps across two lines anchored its popover to the union of
+  its line boxes, which spans most of the text column. Hovering the tail end
+  of one line could open the preview a full column width away, too far to
+  reach before the pointer left the link and the popover hid. The popover now
+  anchors to the line box the pointer is in.
+
 ## [0.1.5] - 2026-08-02
 
 ### Fixed
