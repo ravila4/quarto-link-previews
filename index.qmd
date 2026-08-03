@@ -129,6 +129,23 @@ On default listing cards, which contain several anchors pointing at the
 same post, the preview binds once per card, so sweeping the mouse across a
 card does not flicker the popover.
 
+### Showing readers which links preview
+
+A preview is a hover affordance, so a reader cannot see which links have one
+until they try. Quarto's built-in `link-external-icon` covers this from the
+other side: external links get an arrow icon, which leaves the unmarked
+links as the ones that preview.
+
+```yaml
+format:
+  html:
+    link-external-icon: true
+```
+
+This site runs with it on, which is why
+[Quarto](https://quarto.org/) above carries an arrow and the links to the
+demo pages do not.
+
 ## How it works
 
 Quarto ships tippy.js on every HTML page for its footnote and
