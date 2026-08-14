@@ -100,6 +100,23 @@ test("string arrow is coerced to a boolean", () => {
   assert.equal(resolveConfig({ arrow: "false" }).arrow, false);
 });
 
+// Pandoc parses YAML with the 1.2 core schema, so the 1.1 boolean spellings
+// arrive as strings ("yes") or numbers (1); they must not silently mean false.
+test("YAML 1.1 boolean spellings are accepted", () => {
+  assert.equal(resolveConfig({ arrow: "yes" }).arrow, true);
+  assert.equal(resolveConfig({ arrow: "on" }).arrow, true);
+  assert.equal(resolveConfig({ arrow: 1 }).arrow, true);
+  assert.equal(resolveConfig({ arrow: "1" }).arrow, true);
+  assert.equal(resolveConfig({ arrow: "no" }).arrow, false);
+  assert.equal(resolveConfig({ arrow: "off" }).arrow, false);
+  assert.equal(resolveConfig({ arrow: 0 }).arrow, false);
+  assert.equal(resolveConfig({ arrow: "Yes" }).arrow, true);
+});
+
+test("unrecognized arrow value falls back to the default", () => {
+  assert.equal(resolveConfig({ arrow: "maybe" }).arrow, false);
+});
+
 test("unknown keys are ignored", () => {
   const cfg = resolveConfig({ bogus: true });
   assert.equal(cfg.bogus, undefined);

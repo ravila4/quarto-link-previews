@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - `placement` option: which side of the link the popover opens on. Any tippy
   placement (`top`, `bottom`, `left`, `right`, `auto`, each with optional
-  `-start`/`-end` suffix); default stays `bottom-start`. Popper flips to the
-  opposite side when the preferred one runs out of room.
+  `-start`/`-end` suffix); default stays `bottom-start`. When a side runs
+  out of room the popover tries the other alignment of that side, the
+  opposite side, then below/above the link, instead of clipping at the
+  viewport edge.
 - `arrow` option (default `false`): a small arrow from the popover to the
   link, speech-bubble style. The arrow anchors to the same line box as the
   popover, so it points at the line under the pointer even on wrapped links.
+  The YAML 1.1 boolean spellings (`yes`, `on`, `1`), which pandoc parses as
+  strings, are accepted; unrecognized values warn on the console.
 
 ### Fixed
 

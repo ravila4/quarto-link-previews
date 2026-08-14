@@ -42,8 +42,8 @@ extensions:
     content: "#title-block-header, #quarto-document-content"
     delay: [300, 0]     # show/hide delay in ms; scalar means show-delay only
     max-width: 500      # popover width in px
-    placement: right    # popover side: top/bottom/left/right/auto (+ -start/-end)
-    arrow: true         # point an arrow at the link, speech-bubble style
+    placement: bottom-start   # or left/right/top/auto, each with -start/-end
+    arrow: false        # true points an arrow at the link, speech-bubble style
     exclude:            # links matching these selectors never preview
       - ".sidebar-recent a"
 ```
@@ -59,8 +59,9 @@ Quarto's metadata merge, not a choice this filter makes.
 
 With `placement: right` and `arrow: true`, the popover opens beside the link
 and points at it, speech-bubble style. When a side placement runs out of
-room, the popover falls back to the opposite side, then below or above the
-link, so it never clips off-screen.
+room, the popover tries the other alignment of that side, then the opposite
+side, then below or above the link, instead of clipping at the viewport
+edge.
 
 ![With placement right and arrow on, the popover opens beside the link and points at it](docs/assets/placement-arrow-light.png)
 

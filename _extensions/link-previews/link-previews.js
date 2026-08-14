@@ -29,6 +29,9 @@ const PLACEMENTS = new Set([
   "right", "right-start", "right-end",
 ]);
 
+const ARROW_TRUE = new Set([true, "true", "yes", "on", 1, "1"]);
+const ARROW_FALSE = new Set([false, "false", "no", "off", 0, "0"]);
+
 export function resolveConfig(userCfg) {
   // quarto.json.encode emits an empty Lua table as [], not {}.
   const raw = userCfg && !Array.isArray(userCfg) ? userCfg : {};
@@ -78,7 +81,21 @@ export function resolveConfig(userCfg) {
     }
   }
   if (raw.arrow !== undefined) {
-    cfg.arrow = raw.arrow === true || raw.arrow === "true";
+    // Pandoc's YAML 1.2 core schema leaves the 1.1 boolean spellings as
+    // strings ("yes", "on") or numbers (1); accept them rather than let a
+    // YAML habit silently disable the arrow. Unrecognized values warn and
+    // fall back, same rule as placement.
+    const key = typeof raw.arrow === "string" ? raw.arrow.trim().toLowerCase() : raw.arrow;
+    if (ARROW_TRUE.has(key)) {
+      cfg.arrow = true;
+    } else if (ARROW_FALSE.has(key)) {
+      cfg.arrow = false;
+    } else {
+      console.warn(
+        `link-previews: unknown arrow value ${JSON.stringify(raw.arrow)}, ` +
+          `using ${DEFAULTS.arrow}`,
+      );
+    }
   }
   return cfg;
 }
@@ -235,10 +252,13 @@ export function isEligible(link, page, config) {
 
 // A side placement can fail on both sides at once: a wide reference (a
 // listing card) in a modest viewport leaves less than max-width on either
-// side, and popper's default fallback -- the opposite side only -- then keeps
-// the least-bad side and lets the popover clip off-screen. Extend the
-// fallback chain with the vertical placements so it degrades to below/above
-// the link instead. Vertical and auto placements keep popper's defaults.
+// side, and popper's default fallbacks -- confined to the horizontal
+// placements -- then keep the least-bad side and let the popover clip
+// off-screen. Extend the chain with the vertical placements so it degrades
+// to below/above the link instead. Supplying fallbackPlacements replaces
+// popper's list wholesale, so its variation expansion (right-start tries
+// right-end before leaving the right side) has to be restated, not just
+// appended to. Vertical and auto placements keep popper's defaults.
 export function flipFallbacks(placement) {
   const [side, suffix] = placement.split("-");
   if (side !== "left" && side !== "right") {
@@ -246,7 +266,15 @@ export function flipFallbacks(placement) {
   }
   const opposite = side === "left" ? "right" : "left";
   const tail = suffix ? `-${suffix}` : "";
-  return [`${opposite}${tail}`, `bottom${tail}`, `top${tail}`];
+  const flipped = suffix ? `-${suffix === "start" ? "end" : "start"}` : "";
+  const chain = [
+    `${side}${flipped}`,
+    `${opposite}${tail}`,
+    `${opposite}${flipped}`,
+    `bottom${tail}`,
+    `top${tail}`,
+  ];
+  return [...new Set(chain)].filter((p) => p !== placement);
 }
 
 // ---------------------------------------------------------------------------
