@@ -8,6 +8,10 @@ title-block-banner: true
 # kept here so the demo render exercises it.
 link-previews:
   delay: [150, 0]
+  placement: right-start
+  # Deliberately the YAML 1.1 spelling: pandoc leaves it as the string
+  # "yes", and this page keeps that coercion path exercised end to end.
+  arrow: yes
 ---
 
 A drying drop pins its contact line, so the footprint cannot shrink.

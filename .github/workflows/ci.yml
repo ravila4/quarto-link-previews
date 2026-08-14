@@ -59,6 +59,8 @@ jobs:
             const legacy = read("demo/coffee.html");
             if (Number(legacy.delay[0]) !== 150) throw new Error("top-level page config not read");
             if (legacy.exclude.length !== 1) throw new Error("the two spellings did not combine");
+            if (legacy.placement !== "right-start") throw new Error("placement missing from the page config");
+            if (legacy.arrow !== "yes") throw new Error("arrow should arrive as the raw YAML 1.1 string");
             const override = read("demo/long-page.html");
             if (Number(override["max-width"]) !== 640) throw new Error("page override not applied");
             if (override.exclude.length !== 1) throw new Error("restated exclude missing from the override");
