@@ -42,6 +42,8 @@ extensions:
     content: "#title-block-header, #quarto-document-content"
     delay: [300, 0]     # show/hide delay in ms; scalar means show-delay only
     max-width: 500      # popover width in px
+    placement: right    # popover side: top/bottom/left/right/auto (+ -start/-end)
+    arrow: true         # point an arrow at the link, speech-bubble style
     exclude:            # links matching these selectors never preview
       - ".sidebar-recent a"
 ```
@@ -55,12 +57,21 @@ A block in a page's front matter replaces the site block rather than merging
 into it, so repeat any site-wide key you still want on that page. That is
 Quarto's metadata merge, not a choice this filter makes.
 
+With `placement: right` and `arrow: true`, the popover opens beside the link
+and points at it, speech-bubble style. When a side placement runs out of
+room, the popover falls back to the opposite side, then below or above the
+link, so it never clips off-screen.
+
+![With placement right and arrow on, the popover opens beside the link and points at it](docs/assets/placement-arrow-light.png)
+
 | Key | Default | Meaning |
 |---|---|---|
 | `enabled` | `true` | Kill switch; `false` in a page's front matter disables that page |
 | `content` | `"#title-block-header, #quarto-document-content"` | Selectors extracted from the target page |
 | `delay` | `[300, 0]` | tippy show/hide delay in ms |
 | `max-width` | `500` | Popover max width in px |
+| `placement` | `bottom-start` | Popover side: any tippy placement (`top`, `bottom`, `left`, `right`, `auto`, each with optional `-start`/`-end`); flips when out of room |
+| `arrow` | `false` | Point an arrow from the popover at the link |
 | `exclude` | `[]` | Extra CSS selectors whose links never get previews |
 
 Per-link opt-outs: add the `no-preview` class or a `data-no-preview`

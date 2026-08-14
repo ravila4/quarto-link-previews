@@ -54,6 +54,8 @@ extensions:
     content: "#title-block-header, #quarto-document-content"
     delay: [300, 0]     # show/hide delay in ms; a scalar sets show-delay only
     max-width: 500      # popover width in px
+    placement: right    # popover side: top/bottom/left/right/auto (+ -start/-end)
+    arrow: true         # point an arrow at the link, speech-bubble style
     exclude:            # links matching these selectors never preview
       - ".sidebar-recent a"
 ```
@@ -72,6 +74,13 @@ merges document metadata into project metadata, not something this filter
 decides. [The long page](demo/long-page.qmd) in the demo does this: it
 widens its own previews to 640px and restates the site's `exclude` list to
 keep it.
+
+With `placement: right` and `arrow: true`, the popover opens beside the link
+and points at it, speech-bubble style. When a side placement runs out of
+room, the popover falls back to the opposite side, then below or above the
+link, so it never clips off-screen.
+
+![With placement right and arrow on, the popover opens beside the link and points at it](docs/assets/placement-arrow-light.png)
 
 ### Turning previews off
 
@@ -106,6 +115,8 @@ tune the rest. Set them on `:root` in your site's CSS:
 | `content` | `"#title-block-header, #quarto-document-content"` | Selectors extracted from the target page |
 | `delay` | `[300, 0]` | tippy show/hide delay in ms |
 | `max-width` | `500` | Popover max width in px |
+| `placement` | `bottom-start` | Popover side: any tippy placement (`top`, `bottom`, `left`, `right`, `auto`, each with optional `-start`/`-end`); falls back toward `bottom` when out of room |
+| `arrow` | `false` | Point an arrow from the popover at the link |
 | `exclude` | `[]` | Extra CSS selectors whose links never get previews |
 
 ### CSS custom properties
