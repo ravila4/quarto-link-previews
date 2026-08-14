@@ -7,11 +7,13 @@
  * palette, and lift the popover with a shadow. Both are overridable via
  * custom properties set on :root. */
 .tippy-box[data-theme~="link-preview"] {
-  overflow: hidden;
-  border-color: var(
+  /* currentColor resolves where the property is used, so any user of
+   * --lp-border must carry the theme's text color (see the arrow rule). */
+  --lp-border: var(
     --link-preview-border-color,
     color-mix(in srgb, currentColor 30%, transparent)
   );
+  border-color: var(--lp-border);
   box-shadow: var(
     --link-preview-shadow,
     0 6px 24px rgb(0 0 0 / 0.12),
@@ -19,8 +21,37 @@
   );
 }
 
+/* Content is clipped to the rounded corners here rather than on the box:
+ * overflow on the box would also clip the arrow, which sits outside it. */
 .tippy-box[data-theme~="link-preview"] .tippy-content {
   padding: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* Arrow (the `arrow` option). Fill comes from Quarto's quarto theme, which
+ * tracks the popover background per light/dark mode; only the border layer
+ * needs to follow our derived border color. tippy's stock CSS pins the
+ * arrow's color to #333, which would skew that derivation in dark mode --
+ * re-inherit the theme text color the box border derives from. */
+.tippy-box[data-theme~="link-preview"] > .tippy-arrow {
+  color: inherit;
+}
+
+.tippy-box[data-theme~="link-preview"][data-placement^="top"] > .tippy-arrow::after {
+  border-top-color: var(--lp-border);
+}
+
+.tippy-box[data-theme~="link-preview"][data-placement^="bottom"] > .tippy-arrow::after {
+  border-bottom-color: var(--lp-border);
+}
+
+.tippy-box[data-theme~="link-preview"][data-placement^="left"] > .tippy-arrow::after {
+  border-left-color: var(--lp-border);
+}
+
+.tippy-box[data-theme~="link-preview"][data-placement^="right"] > .tippy-arrow::after {
+  border-right-color: var(--lp-border);
 }
 
 .link-preview-body {

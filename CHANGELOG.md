@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-08-14
+
+### Added
+
+- `placement` option: which side of the link the popover opens on. Any tippy
+  placement (`top`, `bottom`, `left`, `right`, `auto`, each with optional
+  `-start`/`-end` suffix); default stays `bottom-start`. Popper flips to the
+  opposite side when the preferred one runs out of room.
+- `arrow` option (default `false`): a small arrow from the popover to the
+  link, speech-bubble style. The arrow anchors to the same line box as the
+  popover, so it points at the line under the pointer even on wrapped links.
+
+### Fixed
+
+- The popover clipped its rounded corners on the tippy box itself, which
+  would also have clipped the arrow; the clip now lives on the content node.
+  No visible change without `arrow: true`.
+
 ## [0.2.0] - 2026-08-02
 
 ### Added

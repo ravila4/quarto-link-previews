@@ -4,7 +4,7 @@
 // DOM glue at the bottom behind a `typeof document` guard so the module is
 // importable under Node without a DOM shim.
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -15,7 +15,19 @@ export const DEFAULTS = Object.freeze({
   delay: [300, 0],
   maxWidth: 500,
   exclude: [],
+  placement: "bottom-start",
+  arrow: false,
 });
+
+// The popper placements tippy accepts. `auto` picks the side with the most
+// room; every placement flips to the opposite side when it runs out of space.
+const PLACEMENTS = new Set([
+  "auto", "auto-start", "auto-end",
+  "top", "top-start", "top-end",
+  "bottom", "bottom-start", "bottom-end",
+  "left", "left-start", "left-end",
+  "right", "right-start", "right-end",
+]);
 
 export function resolveConfig(userCfg) {
   // quarto.json.encode emits an empty Lua table as [], not {}.
@@ -25,6 +37,8 @@ export function resolveConfig(userCfg) {
     delay: [...DEFAULTS.delay],
     maxWidth: DEFAULTS.maxWidth,
     exclude: [...DEFAULTS.exclude],
+    placement: DEFAULTS.placement,
+    arrow: DEFAULTS.arrow,
   };
   if (raw.content !== undefined) {
     cfg.content = Array.isArray(raw.content) ? raw.content.join(", ") : String(raw.content);
@@ -50,6 +64,21 @@ export function resolveConfig(userCfg) {
   }
   if (raw.exclude !== undefined) {
     cfg.exclude = Array.isArray(raw.exclude) ? raw.exclude.map(String) : [String(raw.exclude)];
+  }
+  if (raw.placement !== undefined) {
+    const placement = String(raw.placement).trim().toLowerCase();
+    if (PLACEMENTS.has(placement)) {
+      cfg.placement = placement;
+    } else {
+      // A typo'd placement must not fail silently (same rule as selectors).
+      console.warn(
+        `link-previews: unknown placement ${JSON.stringify(raw.placement)}, ` +
+          `using ${DEFAULTS.placement}`,
+      );
+    }
+  }
+  if (raw.arrow !== undefined) {
+    cfg.arrow = raw.arrow === true || raw.arrow === "true";
   }
   return cfg;
 }
@@ -202,6 +231,22 @@ export function isEligible(link, page, config) {
     }
   }
   return { ok: true, reason: null };
+}
+
+// A side placement can fail on both sides at once: a wide reference (a
+// listing card) in a modest viewport leaves less than max-width on either
+// side, and popper's default fallback -- the opposite side only -- then keeps
+// the least-bad side and lets the popover clip off-screen. Extend the
+// fallback chain with the vertical placements so it degrades to below/above
+// the link instead. Vertical and auto placements keep popper's defaults.
+export function flipFallbacks(placement) {
+  const [side, suffix] = placement.split("-");
+  if (side !== "left" && side !== "right") {
+    return null;
+  }
+  const opposite = side === "left" ? "right" : "left";
+  const tail = suffix ? `-${suffix}` : "";
+  return [`${opposite}${tail}`, `bottom${tail}`, `top${tail}`];
 }
 
 // ---------------------------------------------------------------------------
@@ -469,6 +514,7 @@ function bindPreview(el, fetchUrl, fragment, cfg) {
     // rect itself is re-read on every reposition so scrolling still tracks.
     let anchorIndex = 0;
 
+    const fallbacks = flipFallbacks(cfg.placement);
     window.tippy(el, {
       theme: "quarto link-preview",
       allowHTML: true,
@@ -476,7 +522,14 @@ function bindPreview(el, fetchUrl, fragment, cfg) {
       interactiveBorder: 10,
       maxWidth: cfg.maxWidth,
       delay: cfg.delay,
-      placement: "bottom-start",
+      // Explicit: tippy's own default for arrow is true; ours is false.
+      placement: cfg.placement,
+      arrow: cfg.arrow,
+      ...(fallbacks && {
+        popperOptions: {
+          modifiers: [{ name: "flip", options: { fallbackPlacements: fallbacks } }],
+        },
+      }),
       appendTo: () => document.body,
       trigger: "mouseenter focus",
       touch: false,

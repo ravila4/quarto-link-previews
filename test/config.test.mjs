@@ -9,6 +9,8 @@ test("empty input yields defaults", () => {
   assert.deepEqual(cfg.delay, [300, 0]);
   assert.equal(cfg.maxWidth, 500);
   assert.deepEqual(cfg.exclude, []);
+  assert.equal(cfg.placement, "bottom-start");
+  assert.equal(cfg.arrow, false);
 });
 
 test("undefined input yields defaults", () => {
@@ -74,6 +76,28 @@ test("null max-width falls back to the default", () => {
 
 test("non-numeric max-width falls back to the default", () => {
   assert.equal(resolveConfig({ "max-width": "wide" }).maxWidth, 500);
+});
+
+test("valid placement is accepted", () => {
+  assert.equal(resolveConfig({ placement: "right-start" }).placement, "right-start");
+});
+
+test("placement is trimmed and lowercased", () => {
+  assert.equal(resolveConfig({ placement: " Right " }).placement, "right");
+});
+
+test("unknown placement falls back to the default", () => {
+  assert.equal(resolveConfig({ placement: "sideways" }).placement, "bottom-start");
+});
+
+test("arrow true is accepted", () => {
+  assert.equal(resolveConfig({ arrow: true }).arrow, true);
+});
+
+// Metadata that detours through pandoc.utils.stringify arrives as a string.
+test("string arrow is coerced to a boolean", () => {
+  assert.equal(resolveConfig({ arrow: "true" }).arrow, true);
+  assert.equal(resolveConfig({ arrow: "false" }).arrow, false);
 });
 
 test("unknown keys are ignored", () => {

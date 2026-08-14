@@ -43,6 +43,33 @@ options:
     description: "CSS selectors whose descendant links never get a preview, for example \".sidebar-recent a\"."
     items:
       type: string
+  placement:
+    type: string
+    default: bottom-start
+    description: "Which side of the link the popover opens on. Any tippy placement: top, bottom, left, right, or auto (the side with the most room), each optionally suffixed with -start or -end. Flips to the opposite side when out of space."
+    enum: &placements
+      - auto
+      - auto-start
+      - auto-end
+      - top
+      - top-start
+      - top-end
+      - bottom
+      - bottom-start
+      - bottom-end
+      - left
+      - left-start
+      - left-end
+      - right
+      - right-start
+      - right-end
+    completion:
+      type: enum
+      values: *placements
+  arrow:
+    type: boolean
+    default: false
+    description: "Draw a small arrow from the popover to the link, speech-bubble style."
 
 classes:
   no-preview:
