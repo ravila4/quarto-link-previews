@@ -11,8 +11,10 @@
       "  link-previews:",
       "    delay: [${1:300}, ${2:0}]",
       "    max-width: ${3:500}",
+      "    placement: ${4:bottom-start}",
+      "    arrow: ${5:false}",
       "    exclude:",
-      "      - \"${4:.sidebar-recent a}\"",
+      "      - \"${6:.sidebar-recent a}\"",
       "$0"
     ],
     "description": "Configuration block for link previews, with every key at its default"
