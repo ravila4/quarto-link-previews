@@ -86,7 +86,7 @@ function Meta(m)
 
   quarto.doc.add_html_dependency({
     name = "link-previews",
-    version = "0.3.0",
+    version = "0.3.1",
     scripts = { { path = "link-previews.js", attribs = { type = "module" } } },
     stylesheets = { "link-previews.css" },
   })

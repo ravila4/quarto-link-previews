@@ -4,7 +4,7 @@
 // DOM glue at the bottom behind a `typeof document` guard so the module is
 // importable under Node without a DOM shim.
 
-export const VERSION = "0.3.0";
+export const VERSION = "0.3.1";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -479,7 +479,7 @@ function bindAll() {
       bindPreview(entry.el, entry.fetchUrl, entry.fragment, cfg);
     } else {
       const first = eligible[binding.anchorIds[0]];
-      bindPreview(cardElements[binding.cardId], first.fetchUrl, first.fragment, cfg);
+      bindPreview(cardElements[binding.cardId], first.fetchUrl, first.fragment, cfg, true);
     }
   }
 }
@@ -518,10 +518,41 @@ export function pickAnchorRectIndex(rects, pointer) {
   return best;
 }
 
-function bindPreview(el, fetchUrl, fragment, cfg) {
+// Line boxes of the element's actual text, not its border box. Quarto's
+// listing templates wrap whole divs in anchors, so a block anchor's client
+// rects span its container -- the metadata column, say -- and anchoring
+// there puts the popover an empty column away from the words the reader is
+// pointing at. Ranges over the text nodes give the text's own line boxes;
+// an inline anchor yields exactly its getClientRects. Text-free anchors
+// (an image link) fall back to the element rects.
+function textLineRects(el) {
+  const rects = [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (!node.nodeValue?.trim()) continue;
+    range.selectNodeContents(node);
+    rects.push(...range.getClientRects());
+  }
+  return rects.length > 0 ? rects : [...el.getClientRects()];
+}
+
+function bindPreview(el, fetchUrl, fragment, cfg, isCard = false) {
   // Everything touching the tippy API is wrapped: presence of window.tippy
   // does not guarantee its shape if Quarto ever swaps its hover library.
   try {
+    // A card binding triggers on the whole card, but the card's bounding box
+    // is the wrong anchor: a side-placed popover would open at the card's
+    // far edge, detached from any text, and a full-width row leaves no side
+    // room at all. Anchor to the text line boxes of the card's own links
+    // instead, picked by pointer -- the same rule wrapped inline links use.
+    // The anchors are queried live on every read, never captured at bind
+    // time: quarto-listing.js re-renders card contents after load, and rects
+    // read from the detached originals are empty (or worse, a lone survivor
+    // hijacks every hover). The card element itself persists. If no link has
+    // a rect, the card box is the fallback below.
+    const anchorRects = () =>
+      (isCard ? [...el.querySelectorAll("a[href]")] : [el]).flatMap(textLineRects);
     // Last pointer position over the link. Deliberately not cleared on
     // mouseleave: moving onto an interactive popover leaves the link, and
     // re-choosing the line box then would slide the popover out from under
@@ -563,10 +594,10 @@ function bindPreview(el, fetchUrl, fragment, cfg) {
       touch: false,
       content: stateHtml("loading", "Loading…"),
       getReferenceClientRect: () =>
-        el.getClientRects()[anchorIndex] ?? el.getBoundingClientRect(),
+        anchorRects()[anchorIndex] ?? el.getBoundingClientRect(),
       onShow(instance) {
         anchorIndex = pickAnchorRectIndex(
-          el.getClientRects(),
+          anchorRects(),
           pointerX === null ? null : { x: pointerX, y: pointerY },
         );
         loadContent(instance, fetchUrl, fragment, cfg);

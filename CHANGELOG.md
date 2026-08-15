@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-08-14
+
+### Fixed
+
+- Listing-card popovers anchored to the card's bounding box, which with a
+  side placement opened them at the card's far edge -- detached from the
+  text, arrow pointing at empty space -- and on full-width rows left no side
+  room at all, forcing the bottom fallback. Card popovers now anchor to the
+  line boxes of the card's links, picked by pointer position, the same rule
+  wrapped inline links already followed. Under the default `bottom-start`
+  this moves the popover from below the card to below the hovered line.
+
 ## [0.3.0] - 2026-08-14
 
 ### Added
